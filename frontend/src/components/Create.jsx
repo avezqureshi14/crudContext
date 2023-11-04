@@ -1,36 +1,56 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useProductsContext } from "../hooks/useProductsContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const Create = () => {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
   const navigate = useNavigate();
   const { products, dispatch } = useProductsContext();
-
-
+  const { user } = useAuthContext();
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const productData = { name, price, description, image };
-  try {
-    const response = await axios.post('http://localhost:8800/products/', productData);
-    const newProduct = response.data; // Assuming the response contains the newly created product
-    dispatch({ type: "CREATE_PRODUCT", payload: newProduct });
+    e.preventDefault();
 
-    // Reset the form after successful submission
-    setName('');
-    setPrice('');
-    setDescription('');
-    setImage('');
-    navigate('/');
-  } catch (error) {
-    console.log(error);
-  }
-};
+    if (!user) {
+      console.log("U must be logged in")
+      return
+    }
 
+    // Create the product data object with user_id
+    const productData = {
+      name,
+      price,
+      description,
+      image
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8800/products/",
+        productData,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // Include the user's token in the header
+          },
+        }
+      );
+      const newProduct = response.data; // Assuming the response contains the newly created product
+      dispatch({ type: "CREATE_PRODUCT", payload: newProduct });
+
+      // Reset the form after successful submission
+      setName("");
+      setPrice("");
+      setDescription("");
+      setImage("");
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit}>

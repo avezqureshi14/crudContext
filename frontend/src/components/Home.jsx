@@ -2,23 +2,33 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useProductsContext } from "../hooks/useProductsContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 const Home = () => {
   // const [products, setProducts] = useState([]);
   const { products, dispatch } = useProductsContext();
+  const { user } = useAuthContext();
   useEffect(() => {
     axios
-      .get("http://localhost:8800/products")
+      .get("http://localhost:8800/products", {
+        headers: {
+          Authorization: `Bearer ${user.token}`, // Include the user's token in the header
+        },
+      })
       .then((response) => {
         dispatch({ type: "SET_PRODUCTS", payload: response.data });
       })
       .catch((error) => {
         console.error(error);
       });
-  }, [dispatch]);
+  }, [dispatch, user.token]);
 
   const handleDelete = async (productId) => {
     try {
-      await axios.delete(`http://localhost:8800/products/${productId}`);
+      await axios.delete(`http://localhost:8800/products/${productId}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`, // Include the user's token in the header
+        },
+      });
       dispatch({ type: "DELETE_PRODUCT", payload: productId });
     } catch (error) {
       console.error(error);

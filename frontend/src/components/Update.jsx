@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { ProductContext } from "../context/ProductContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const Update = () => {
   const [name, setName] = useState("");
@@ -13,12 +14,17 @@ const Update = () => {
   const productId = useParams();
   const navigate = useNavigate();
   const { dispatch } = useContext(ProductContext);
-
+  const { user } = useAuthContext();
   useEffect(() => {
     async function fetchProduct() {
       try {
         const response = await axios.get(
-          `http://localhost:8800/products/${productId.id}`
+          `http://localhost:8800/products/${productId.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`, // Include the user's token in the header
+            },
+          }
         );
         const product = response.data;
         setName(product.name);
@@ -30,14 +36,20 @@ const Update = () => {
       }
     }
     fetchProduct();
-  }, [productId.id]);
+  }, [productId.id, user.token]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const productData = { name, price, description, image };
     try {
       const response = await axios.put(
         `http://localhost:8800/products/${productId.id}`,
-        productData
+        productData,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // Include the user's token in the header
+          },
+        }
       );
       const updatedProduct = response.data; // Assuming the response contains the updated product data
 
